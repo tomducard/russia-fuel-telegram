@@ -11,7 +11,8 @@ from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error, accuracy_score, classification_report
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 
 @dataclass
 class ModelResult:
@@ -112,7 +113,7 @@ def train_classifier(
     train_ratio: float = 0.8,
     model_type: str = "rf",
 ) -> ModelResult:
-    """Train a Classifier (Random Forest or XGBoost) on time-ordered data."""
+    """Train a Classifier (Random Forest, XGBoost, MLP, or Gradient Boosting) on time-ordered data."""
     if target_col not in df.columns:
         raise ValueError(f"target column '{target_col}' not found in DataFrame.")
 
@@ -173,10 +174,23 @@ def train_classifier(
         search.fit(X_train, y_train)
         print(f"Best Parameters: {search.best_params_}")
         clf = search.best_estimator_
-        
-    else:
-        # Default to Random Forest
+    elif model_type == "rf":
         clf = RandomForestClassifier(n_estimators=100, random_state=42, max_depth=5)
+    elif model_type == "gb":
+        clf = GradientBoostingClassifier(random_state=42)
+    elif model_type == "mlp":
+        clf = MLPClassifier(
+            hidden_layer_sizes=(64, 32),
+            activation="relu",
+            solver="adam",
+            alpha=1e-4,
+            learning_rate_init=1e-3,
+            max_iter=300,
+            early_stopping=True,
+            random_state=42,
+        )
+    else:
+        raise ValueError(f"Unsupported model_type: {model_type}")
 
     pipeline = Pipeline(
         [
