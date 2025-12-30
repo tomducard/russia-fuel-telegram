@@ -1,9 +1,19 @@
 .env
-.venv/
 __pycache__/
-*.log
-.ipynb_checkpoints/
+.pytest_cache/
+*.pyc
+*.pyo
+*.sqlite
+*.session
 
-data/raw/**
-data/interim/**
-data/processed/**
+.venv/
+
+# Data artifacts
+data/raw/
+data/interim/
+data/processed/
+data/cache/
+
+# IDE
+.vscode/
+.idea/
