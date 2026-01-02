@@ -12,20 +12,42 @@ Pipeline to scrape public Telegram channels, engineer fuel-related signals, merg
 - `channels/`: seed channel list + keyword YAML
 - `data/raw|interim|processed`: storage for artifacts (gitignored)
 
-## Quickstart
-1) Install deps: `pip install -e .[dev]`
-2) Copy `.env.example` to `.env` and fill in `TG_API_ID`, `TG_API_HASH`, and optionally `TG_SESSION_NAME`.
-3) Update `channels/channels_seed.csv` with public channels and `channels/keywords_ru.yaml` with keywords.
+## Quickstart (Full Pipeline)
 
-### CLI usage (`rft`)
-- Scrape messages to Parquet:
-  - `rft scrape --channels channels/channels_seed.csv --output data/raw/messages.parquet --limit 300`
-- Build daily features + Fuel Stress Index:
-  - `rft features --raw data/raw/messages.parquet --keywords channels/keywords_ru.yaml --output data/interim/daily_features.parquet`
-- Merge with official CSV (must include `date` column):
-  - `rft merge-official --features data/interim/daily_features.parquet --official-csv path/to/official.csv --output data/processed/merged.parquet`
-- Train baseline Ridge model (time split):
-  - `rft train --data data/processed/merged.parquet --target official_metric`
+This project has been updated to handle large-scale historical data (2021-2025). Follow these steps to reproduce the "Hybrid Model" results.
+
+### 1. Scraping (Deep Mine)
+Collect all messages since 2021 from channels listed in `channels/channels_seed_extended.csv`.
+```bash
+python -m rft.cli scrape --channels channels/channels_seed.csv --output data/raw/messages.parquet --limit 0 --since 2021-01-01
+```
+*Note: This saves incremental chunks in `data/raw/chunks/` to prevent data loss.*
+
+### 2. Feature Extraction (NLP + Indexes)
+Compute sentiment, text embeddings, and specific keyword indices (Stress, Logistics).
+```bash
+python -m rft.cli features --raw data/raw/messages.parquet --output data/interim/daily_features.parquet
+```
+
+### 3. Data Enrichment (Macro + Rolling Stats)
+Merge with official macro-economic data (USD/RUB) and compute rolling volatility/trends.
+```bash
+python scripts/enrich_dataset.py --input data/interim/daily_features.parquet
+```
+*Output: `data/processed/merged_enriched.parquet`*
+
+### 4. Training (XGBoost Hybrid)
+Train the final model using the optimized hyperparameters and "Crisis" target (7-day ahead).
+```bash
+python -m rft.cli train --data data/processed/merged_enriched.parquet --mode classification --model-type xgb --target crisis_7d
+```
+
+### 5. Visualization (Probability Mode)
+Generate the "Risk Curve" graph showing probabilities vs real crisis events.
+```bash
+python scripts/viz_predictions.py
+```
+*Output: `data/processed/probability_plot.png`*
 
 ## Data collection
 - **.env setup**: Copy `.env.example` to `.env`, then paste the values from https://my.telegram.org/apps into `TG_API_ID` and `TG_API_HASH`. `TG_SESSION_NAME` is optional; if omitted the CLI uses `rft_session`.
