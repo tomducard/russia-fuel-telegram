@@ -5,6 +5,7 @@ src/rft/cli.py
 src/rft/features.py
 src/rft/keywords.py
 src/rft/model.py
+src/rft/nlp.py
 src/rft/normalization.py
 src/rft/official.py
 src/rft/scraping.py

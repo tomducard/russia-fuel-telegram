@@ -150,7 +150,12 @@ def build_parser() -> argparse.ArgumentParser:
     train_p.add_argument("--data", default="data/processed/merged.parquet", help="Merged dataset path")
     train_p.add_argument("--target", default="official_metric", help="Target column name")
     train_p.add_argument("--mode", choices=["regression", "classification"], default="regression", help="Training mode")
-    train_p.add_argument("--model-type", choices=["rf", "xgb", "lstm"], default="rf", help="Classifier type (RandomForest, XGBoost, LSTM)")
+    train_p.add_argument(
+        "--model-type",
+        choices=["rf", "xgb", "gb", "mlp", "lstm"],
+        default="rf",
+        help="Classifier type (RandomForest, XGBoost, GradientBoosting, MLP, LSTM)",
+    )
     train_p.add_argument("--train-ratio", type=float, default=0.8, help="Train split ratio")
     train_p.set_defaults(func=run_train)
 
