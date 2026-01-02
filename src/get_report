@@ -1,0 +1,4 @@
+for m in rf gb mlp xgb; do
+  echo "=== $m ==="
+  rft train --mode classification --target crisis_7d --model-type "$m" --data data/processed/merged.parquet
+done

@@ -145,7 +145,6 @@ def train_classifier(
         base_clf = XGBClassifier(
             objective="binary:logistic",
             eval_metric="logloss",
-            use_label_encoder=False,
             random_state=42
         )
         
